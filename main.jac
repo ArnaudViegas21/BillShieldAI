@@ -1,14 +1,14 @@
-"""Fullstack Starter - Entry Point.
-
-Imports server-side symbols and mounts the client app.
+"""
+BillShield AI — main entry point.
 """
 
-import from services.appService { greet }
+import from services.billService { BillAnalysis, analyze_bill }
 
-cl import from .index { ClientApp }
+cl import ".styles.global.css";
 
-cl {
-    def:pub app() -> JsxElement {
-        return <ClientApp />;
-    }
+to cl:
+import from .index { ClientApp }
+
+def:pub app() -> JsxElement {
+    return <ClientApp />;
 }
