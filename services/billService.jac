@@ -242,6 +242,40 @@ def generate_summary(bill_type: str, provider: str, amount_due: str, risk_level:
     return summary;
 }
 
+def:pub test_featherless() -> dict[str, object] {
+    import os;
+    import json;
+    import requests;
+
+    api_key: str = os.environ.get("FEATHERLESS_API_KEY", "");
+    if not api_key {
+        return {"ok": False, "error": "FEATHERLESS_API_KEY not set"};
+    }
+
+    try {
+        resp = requests.post(
+            "https://api.featherless.ai/v1/chat/completions",
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + api_key
+            },
+            json={
+                "model": "Qwen/Qwen2.5-7B-Instruct",
+                "messages": [
+                    {"role": "user", "content": "Return JSON only: {\"ok\": true, \"message\": \"Featherless connected\"}"}
+                ]
+            },
+            timeout=30
+        );
+        resp.raise_for_status();
+        body = resp.json();
+        raw_content: str = str(body["choices"][0]["message"]["content"]);
+        return {"ok": True, "raw_content": raw_content};
+    } except Exception as e {
+        return {"ok": False, "error": str(e)};
+    }
+}
+
 def:pub analyze_bill(bill_text: str) -> dict[str, object] {
     return {
         "bill_type": "Medical Bill",

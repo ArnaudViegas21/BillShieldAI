@@ -2,7 +2,7 @@
 BillShield AI — main entry point.
 """
 
-import from services.billService { analyze_bill }
+import from services.billService { analyze_bill, test_featherless }
 
 cl import ".styles.global.css";
 
