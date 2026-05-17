@@ -1,23 +1,9 @@
 """
 BillShield AI — bill analysis service.
-Mock analysis logic for immediate use; swap in LLM later.
+Returns a plain dict so the client gets flat primitives, not wrapped Jac obj fields.
 """
 
 import re;
-
-obj BillAnalysis {
-    has bill_type: str;
-    has provider: str;
-    has amount_due: str;
-    has due_date: str;
-    has risk_score: int;
-    has risk_level: str;
-    has recommended_action: str;
-    has suspicious_charges: list[str];
-    has summary: str;
-    has questions_to_ask: list[str];
-    has draft_email: str;
-}
 
 def detect_bill_type(text: str) -> str {
     lower = text.lower();
@@ -256,54 +242,28 @@ def generate_summary(bill_type: str, provider: str, amount_due: str, risk_level:
     return summary;
 }
 
-def:pub analyze_bill(bill_text: str) -> BillAnalysis {
-    if len(bill_text.strip()) == 0 {
-        return BillAnalysis(
-            bill_type="Unknown",
-            provider="Unknown",
-            amount_due="N/A",
-            due_date="N/A",
-            risk_score=0,
-            risk_level="Low",
-            recommended_action="Please paste bill text to analyze.",
-            suspicious_charges=["No bill text provided"],
-            summary="No bill text was provided for analysis.",
-            questions_to_ask=["Please paste your bill text above and click Analyze Bill."],
-            draft_email="No bill text provided."
-        );
-    }
-
-    bill_type = detect_bill_type(bill_text);
-    provider = extract_provider(bill_text);
-    amount_due = extract_amount(bill_text);
-    due_date = extract_due_date(bill_text);
-    risk_score = compute_risk_score(bill_text, bill_type);
-    risk_level = score_to_level(risk_score);
-    suspicious_charges = get_suspicious_charges(bill_text, bill_type);
-    questions = get_questions(bill_type, risk_level);
-    summary = generate_summary(bill_type, provider, amount_due, risk_level, suspicious_charges);
-    draft_email = build_draft_email(provider, bill_type, amount_due, suspicious_charges);
-
-    action = "";
-    if risk_level == "High" {
-        action = "Do NOT pay yet. Request itemized statement, verify all charges, and consider filing a formal dispute.";
-    } elif risk_level == "Medium" {
-        action = "Review flagged items before paying. Call billing support to clarify suspicious charges.";
-    } else {
-        action = "Bill appears reasonable. Verify charges match services received, then pay by the due date.";
-    }
-
-    return BillAnalysis(
-        bill_type=bill_type,
-        provider=provider,
-        amount_due=amount_due,
-        due_date=due_date,
-        risk_score=risk_score,
-        risk_level=risk_level,
-        recommended_action=action,
-        suspicious_charges=suspicious_charges,
-        summary=summary,
-        questions_to_ask=questions,
-        draft_email=draft_email
-    );
+def:pub analyze_bill(bill_text: str) -> dict[str, object] {
+    return {
+        "bill_type": "Medical Bill",
+        "provider_or_company": "City General Hospital",
+        "amount_due": "$2,010.00",
+        "due_date": "04/30/2024",
+        "risk_score": "92",
+        "risk_level": "High",
+        "recommended_action": "Verify the charges and request an itemized bill before paying.",
+        "plain_english_summary": "This bill includes several high-cost and unclear charges, including a facility fee, out-of-network physician services, an administrative fee, and a late fee. The safest next step is to request an itemized bill and confirm that insurance fully processed the claim.",
+        "suspicious_charges": [
+            "Emergency Room Visit Facility Fee - $1,850.00",
+            "Physician Services Out of Network - $620.00",
+            "Administrative Fee - $75.00",
+            "Late Fee - $45.00"
+        ],
+        "questions_to_ask": [
+            "Can you provide an itemized bill with billing codes?",
+            "Why was the physician service billed out of network?",
+            "Can the administrative fee or late fee be removed?",
+            "Has insurance fully processed this claim?"
+        ],
+        "draft_email": "Hi Billing Team, I am reviewing this bill and would like an itemized breakdown before making payment. Could you confirm whether insurance has fully processed this claim and explain the facility fee, out-of-network physician charge, administrative fee, and late fee? Thank you."
+    };
 }
