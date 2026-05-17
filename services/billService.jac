@@ -244,26 +244,27 @@ def generate_summary(bill_type: str, provider: str, amount_due: str, risk_level:
 
 def:pub debug_env() -> dict[str, object] {
     import os;
+    import dotenv;
 
-    val1: str = os.environ.get("FEATHERLESS_API_KEY", "");
-    val2: str = os.getenv("FEATHERLESS_API_KEY", "");
+    val_environ: str = os.environ.get("FEATHERLESS_API_KEY", "");
 
-    val3: str = "";
+    val_dotenv: str = "";
     try {
-        raw3 = env("FEATHERLESS_API_KEY");
-        if raw3 is not None {
-            val3 = str(raw3);
+        dot = dotenv.dotenv_values("/app/.env");
+        raw = dot.get("FEATHERLESS_API_KEY", "");
+        if raw is not None {
+            val_dotenv = str(raw);
         }
     } except Exception as e {
-        val3 = "";
+        val_dotenv = "";
     }
 
-    best_len: int = len(val1) if len(val1) > 0 else (len(val2) if len(val2) > 0 else len(val3));
+    best_len: int = len(val_environ) if len(val_environ) > 0 else len(val_dotenv);
+    method: str = "os.environ" if len(val_environ) > 0 else ("dotenv /app/.env" if len(val_dotenv) > 0 else "none");
 
     return {
-        "os_environ_found": len(val1) > 0,
-        "os_getenv_found": len(val2) > 0,
-        "jac_env_found": len(val3) > 0,
+        "method_used": method,
+        "has_featherless_key": best_len > 0,
         "key_length": best_len
     };
 }
@@ -272,8 +273,20 @@ def:pub test_featherless() -> dict[str, object] {
     import os;
     import json;
     import requests;
+    import dotenv;
 
     api_key: str = os.environ.get("FEATHERLESS_API_KEY", "");
+    if not api_key {
+        try {
+            dot = dotenv.dotenv_values("/app/.env");
+            raw = dot.get("FEATHERLESS_API_KEY", "");
+            if raw is not None {
+                api_key = str(raw);
+            }
+        } except Exception as e {
+            api_key = "";
+        }
+    }
     if not api_key {
         return {"ok": False, "error": "FEATHERLESS_API_KEY not set"};
     }
