@@ -242,6 +242,15 @@ def generate_summary(bill_type: str, provider: str, amount_due: str, risk_level:
     return summary;
 }
 
+def:pub debug_env() -> dict[str, object] {
+    import os;
+    api_key: str = os.environ.get("FEATHERLESS_API_KEY", "");
+    return {
+        "has_featherless_key": len(api_key) > 0,
+        "key_length": len(api_key)
+    };
+}
+
 def:pub test_featherless() -> dict[str, object] {
     import os;
     import json;
