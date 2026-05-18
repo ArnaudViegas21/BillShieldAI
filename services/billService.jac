@@ -315,7 +315,7 @@ def:pub test_featherless() -> dict[str, object] {
     }
 }
 
-def:pub analyze_bill(bill_text: str) -> dict[str, object] {
+def get_mock_result() -> dict[str, object] {
     return {
         "bill_type": "Medical Bill",
         "provider_or_company": "City General Hospital",
@@ -339,4 +339,100 @@ def:pub analyze_bill(bill_text: str) -> dict[str, object] {
         ],
         "draft_email": "Hi Billing Team, I am reviewing this bill and would like an itemized breakdown before making payment. Could you confirm whether insurance has fully processed this claim and explain the facility fee, out-of-network physician charge, administrative fee, and late fee? Thank you."
     };
+}
+
+def:pub analyze_bill(bill_text: str) -> dict[str, object] {
+    import os;
+    import json;
+    import requests;
+    import dotenv;
+
+    api_key: str = os.environ.get("FEATHERLESS_API_KEY", "");
+    if not api_key {
+        try {
+            dot = dotenv.dotenv_values("/app/.env");
+            raw = dot.get("FEATHERLESS_API_KEY", "");
+            if raw is not None {
+                api_key = str(raw);
+            }
+        } except Exception as e {
+            api_key = "";
+        }
+    }
+    if not api_key {
+        return get_mock_result();
+    }
+
+    sp1: str = 'You are BillShield AI, a careful bill-analysis assistant.';
+    sp2: str = 'Analyze pasted bill text and return valid JSON only.';
+    sp3: str = 'Return JSON only. Do not wrap in markdown. Do not include text outside the JSON.';
+    sp4: str = 'Do not say a charge is definitely illegal or fraudulent.';
+    sp5: str = 'Use cautious wording: verify, ask about, may be unclear, worth checking.';
+    sp6: str = 'If information is missing use Not found.';
+    sp7: str = 'suspicious_charges must be an array of strings. questions_to_ask must be an array of strings.';
+    sp8: str = 'risk_score must be a string or number. risk_level must be Low, Medium, or High.';
+    sp9: str = 'Jobs: 1.Identify bill type. 2.Extract provider. 3.Extract amount due. 4.Extract due date.';
+    sp10: str = '5.Identify charges worth verifying. 6.Assign risk score 0-100. 7.Assign risk level.';
+    sp11: str = '8.Give recommended action. 9.Explain bill in plain English. 10.Generate questions. 11.Draft email.';
+    sp12: str = 'Return exactly: {"bill_type":"","provider_or_company":"","amount_due":"","due_date":"","risk_score":"","risk_level":"","recommended_action":"","plain_english_summary":"","suspicious_charges":[],"questions_to_ask":[],"draft_email":""}';
+    system_prompt: str = sp1 + '\n\n' + sp2 + '\n\n' + sp3 + '\n' + sp4 + '\n' + sp5 + '\n' + sp6 + '\n' + sp7 + '\n' + sp8 + '\n\n' + sp9 + '\n' + sp10 + '\n' + sp11 + '\n\n' + sp12;
+
+    user_prompt: str = 'Analyze this bill:\n\n' + bill_text;
+
+    try {
+        resp = requests.post(
+            'https://api.featherless.ai/v1/chat/completions',
+            headers={
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + api_key
+            },
+            json={
+                'model': 'Qwen/Qwen2.5-7B-Instruct',
+                'messages': [
+                    {'role': 'system', 'content': system_prompt},
+                    {'role': 'user', 'content': user_prompt}
+                ]
+            },
+            timeout=60
+        );
+        resp.raise_for_status();
+        body = resp.json();
+        raw_content: str = str(body['choices'][0]['message']['content']);
+
+        cleaned: str = raw_content.strip();
+        if cleaned.startswith('f""f"') {
+            lines = cleaned.split('\n');
+            inner_lines: list[str] = [];
+            for i in range(len(lines)) {
+                line_val: str = lines[i];
+                if i == 0 {
+                    inner_lines.append('');
+                } elif line_val.strip() == '"f""' {
+                    inner_lines.append('');
+                } else {
+                    inner_lines.append(line_val);
+                }
+            }
+            cleaned = '\n'.join(inner_lines).strip();
+        }
+
+        parsed = json.loads(cleaned);
+
+        result: dict[str, object] = {
+            'bill_type': str(parsed.get('bill_type', 'Not found')),
+            'provider_or_company': str(parsed.get('provider_or_company', 'Not found')),
+            'amount_due': str(parsed.get('amount_due', 'Not found')),
+            'due_date': str(parsed.get('due_date', 'Not found')),
+            'risk_score': str(parsed.get('risk_score', '0')),
+            'risk_level': str(parsed.get('risk_level', 'Low')),
+            'recommended_action': str(parsed.get('recommended_action', 'Review your bill carefully.')),
+            'plain_english_summary': str(parsed.get('plain_english_summary', '')),
+            'suspicious_charges': parsed.get('suspicious_charges', []),
+            'questions_to_ask': parsed.get('questions_to_ask', []),
+            'draft_email': str(parsed.get('draft_email', ''))
+        };
+        return result;
+    } except Exception as e {
+        return get_mock_result();
+    }
 }
