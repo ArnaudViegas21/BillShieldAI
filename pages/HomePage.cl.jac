@@ -183,7 +183,7 @@ def:pub page() -> JsxElement {
                             <div className="detail-card">
                                 <div className="detail-card-title">
                                     <div className="detail-card-icon" style={{"background": "#fef3c7"}}>{"⚠️"}</div>
-                                    {"Suspicious Charges"}
+                                    {"Charges to Verify"}
                                 </div>
                                 <ul className="charge-list">
                                     {charges and [<li className="charge-item">
