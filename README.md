@@ -46,3 +46,13 @@ Structured JSON response
         ↓
 BillShield dashboard
 
+
+How Jac Is Used
+
+Jac powers the backend agent layer. The backend receives bill text, calls Featherless, normalizes the model output into a flat response object, and returns structured analysis to the frontend.
+
+The backend also includes fallback behavior so the demo still works if the model call fails.
+
+How Featherless Is Used
+
+Featherless provides the LLM reasoning layer. The Jac backend sends bill text to Featherless using an OpenAI-compatible chat completion request. Featherless extracts fields, identifies charges to verify, scores risk, and drafts the billing-support email.
