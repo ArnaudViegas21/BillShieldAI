@@ -1,26 +1,56 @@
 # BillShield AI
 
-BillShield AI helps users understand confusing bills before they pay. Users paste bill text from a medical bill, utility bill, phone bill, insurance bill, or service invoice, and the app returns a plain-English breakdown, risk score, charges to verify, questions to ask billing support, and a draft clarification email.
+BillShield AI is an agentic bill-analysis assistant that helps users understand confusing bills before they pay. Users paste bill text from a medical bill, utility bill, phone bill, insurance bill, or service invoice, and the app returns a structured breakdown with key details, a risk score, charges to verify, plain-English guidance, billing questions, and a draft clarification email.
 
-Built for JacHacks as an agentic bill-analysis assistant.
+Built for **JacHacks** using **Lovable**, **Jac AI / Jaseci**, and **Featherless**.
 
-## Demo
+---
 
-- Live frontend: add your Lovable published URL here
-- Jac backend endpoint: `/function/analyze_bill`
+## Live Demo
+
+- **Frontend:** https://lovable.dev/projects/b96861ec-7c51-4e71-a072-5150476d958d
+- **Backend Endpoint:** `/function/analyze_bill`
+
+---
+
+## Problem
+
+Bills are often confusing, vague, and stressful. People may see facility fees, administrative fees, roaming charges, late fees, out-of-network charges, or unclear service fees without knowing what they mean or whether they should ask questions before paying.
+
+BillShield AI turns messy billing language into clear next steps.
+
+---
 
 ## What It Does
 
-BillShield AI turns messy bill text into an actionable report:
+BillShield AI analyzes pasted bill text and returns an actionable report:
 
-- Detects bill type
-- Extracts provider/company
+- Detects the bill type
+- Extracts the provider or company
 - Extracts amount due and due date
+- Identifies important line items
+- Flags charges worth verifying
 - Generates a risk score and risk level
 - Explains the bill in plain English
-- Flags charges to verify
 - Suggests questions to ask billing support
-- Drafts a clarification email
+- Drafts a clarification email the user can send
+
+---
+
+## Example Use Case
+
+A user receives a bill with unclear charges such as:
+
+- Facility fee
+- Administrative fee
+- Late fee
+- Out-of-network service
+- International roaming charge
+- Service or processing fee
+
+Instead of blindly paying or ignoring the bill, the user pastes it into BillShield AI and receives a clear explanation, questions to ask, and a professional email draft.
+
+---
 
 ## Tech Stack
 
@@ -28,8 +58,11 @@ BillShield AI turns messy bill text into an actionable report:
 |---|---|
 | Frontend | Lovable |
 | Backend / Agent | Jac AI / Jaseci |
-| AI Model | Featherless |
-| Model API | OpenAI-compatible Featherless chat completions |
+| AI Model Provider | Featherless |
+| Model API | OpenAI-compatible Featherless Chat Completions |
+| Deployment | Lovable frontend + Jac sandbox backend |
+
+---
 
 ## Architecture
 
@@ -45,14 +78,3 @@ Featherless AI model
 Structured JSON response
         ↓
 BillShield dashboard
-
-
-How Jac Is Used
-
-Jac powers the backend agent layer. The backend receives bill text, calls Featherless, normalizes the model output into a flat response object, and returns structured analysis to the frontend.
-
-The backend also includes fallback behavior so the demo still works if the model call fails.
-
-How Featherless Is Used
-
-Featherless provides the LLM reasoning layer. The Jac backend sends bill text to Featherless using an OpenAI-compatible chat completion request. Featherless extracts fields, identifies charges to verify, scores risk, and drafts the billing-support email.
