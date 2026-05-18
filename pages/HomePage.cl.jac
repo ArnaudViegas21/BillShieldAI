@@ -38,6 +38,7 @@ def:pub page() -> JsxElement {
     draft_email: str = "";
     charges: object = [];
     questions: object = [];
+    analysis_source: str = "";
 
     if analysis is not None {
         risk_score = str(analysis["risk_score"]);
@@ -51,6 +52,7 @@ def:pub page() -> JsxElement {
         draft_email = str(analysis["draft_email"]);
         charges = analysis["suspicious_charges"];
         questions = analysis["questions_to_ask"];
+        analysis_source = str(analysis["source"]) if analysis["source"] else "";
 
         if risk_level == "High" {
             risk_bg = "risk-card-high";
@@ -117,6 +119,11 @@ def:pub page() -> JsxElement {
                             </button>
                             {error and <span style={{"color": "#ef4444", "fontSize": "0.875rem", "alignSelf": "center"}}>{error}</span>}
                         </div>
+                        {analysis_source and
+                            <div style={{"marginTop": "0.5rem", "fontSize": "0.75rem", "color": "#64748b", "fontFamily": "monospace"}}>
+                                {"source: " + analysis_source}
+                            </div>
+                        }
                     </div>
 
                     {loading and

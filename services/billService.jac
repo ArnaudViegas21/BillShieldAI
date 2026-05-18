@@ -337,7 +337,8 @@ def get_mock_result() -> dict[str, object] {
             "Can the administrative fee or late fee be removed?",
             "Has insurance fully processed this claim?"
         ],
-        "draft_email": "Hi Billing Team, I am reviewing this bill and would like an itemized breakdown before making payment. Could you confirm whether insurance has fully processed this claim and explain the facility fee, out-of-network physician charge, administrative fee, and late fee? Thank you."
+        "draft_email": "Hi Billing Team, I am reviewing this bill and would like an itemized breakdown before making payment. Could you confirm whether insurance has fully processed this claim and explain the facility fee, out-of-network physician charge, administrative fee, and late fee? Thank you.",
+        "source": "fallback_mock"
     };
 }
 
@@ -429,7 +430,8 @@ def:pub analyze_bill(bill_text: str) -> dict[str, object] {
             'plain_english_summary': str(parsed.get('plain_english_summary', '')),
             'suspicious_charges': parsed.get('suspicious_charges', []),
             'questions_to_ask': parsed.get('questions_to_ask', []),
-            'draft_email': str(parsed.get('draft_email', ''))
+            'draft_email': str(parsed.get('draft_email', '')),
+            'source': 'featherless'
         };
         return result;
     } except Exception as e {
